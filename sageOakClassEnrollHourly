@@ -1,0 +1,39 @@
+function updateEnrollmentStatus() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var dataRange = sheet.getRange("F6:I" + sheet.getLastRow());
+  var data = dataRange.getValues();
+  
+  for (var i = 0; i < data.length; i++) {
+    var interested = data[i][0];
+    var enrolled = data[i][1];
+    var classCap = data[i][2];
+    
+    if (classCap === '') {
+      // Leave the entire row clear if class cap is empty
+      sheet.getRange(i + 6, 1, 1, 4).setBackground(null);
+    } else if (enrolled < classCap) {
+      var difference = enrolled - classCap;
+      data[i][3] = difference;
+      sheet.getRange(i + 6, 9).setValue(difference).setBackground("#b6d7a8");
+    } 
+    else if (enrolled === classCap) {
+      var waitlist = interested - enrolled;
+      data[i][3] = waitlist;
+      sheet.getRange(i + 6, 9).setValue(waitlist).setBackground("#dd7e6b");
+      if (waitlist === 0) {
+        sheet.getRange(i + 6, 9).setValue(0).setBackground("#ffff00");
+      }
+    } 
+  }
+  
+  // Update the modified data back to the sheet
+  dataRange.setValues(data);
+}
+
+// This function will create a time-based trigger to run 'updateEnrollmentStatus' every hour
+function createUpdateTrigger() {
+  ScriptApp.newTrigger('updateEnrollmentStatus')
+    .timeBased()
+    .everyHours(1)
+    .create();
+}
